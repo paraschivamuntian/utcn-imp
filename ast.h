@@ -22,6 +22,7 @@ public:
     BLOCK,
     WHILE,
     EXPR,
+    INTEGER,
     RETURN
   };
 
@@ -45,6 +46,7 @@ public:
     REF,
     BINARY,
     CALL,
+    INT,
   };
 
 public:
@@ -132,6 +134,20 @@ public:
 private:
   std::shared_ptr<Expr> callee_;
   ArgList args_;
+};
+
+class INTExpr : public StmtInt {
+
+  public:
+  StmtIntM(count uint64_t val)
+  : StmtInt(Kind::INT)
+  , value_(val)
+  { 
+  }
+
+  uint64_t GetValue() const { return value_;}
+  private:
+  uint64_t value_;
 };
 
 /**

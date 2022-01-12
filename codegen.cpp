@@ -177,7 +177,16 @@ void Codegen::LowerExpr(const Scope &scope, const Expr &expr)
     case Expr::Kind::CALL: {
       return LowerCallExpr(scope, static_cast<const CallExpr &>(expr));
     }
+    case StmtInt::Kind::INT: {
+      return LowerIntExpr(scope,static_cast<const StmtIntM &>(expr));
+    }
   }
+}
+void Codegen::LowerIntExpr(const Scope &scope, const StmtIntM &expr)
+{
+  depth_+=1;
+  Emit<Opcode>(Opcode::PUSH_INT);
+  Emit<uint64_t>(expr.GetValue());
 }
 
 // -----------------------------------------------------------------------------

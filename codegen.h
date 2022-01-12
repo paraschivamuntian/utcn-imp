@@ -108,6 +108,7 @@ private:
   };
 
 private:
+void Codegen::LowerIntExpr(const Scope &scope, const StmtIntM &expr);
   /// Lowers a single statement.
   void LowerStmt(const Scope &scope, const Stmt &stmt);
   /// Lowers a block statement.

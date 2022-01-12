@@ -13,6 +13,10 @@ void Interp::Run()
   for (;;) {
     auto op = prog_.Read<Opcode>(pc_);
     switch (op) {
+      case Opcode::PUSH_INT: {
+        Push(prog_.Read<uint64_t>(pc_));
+        continue;
+      }
       case Opcode::PUSH_FUNC: {
         Push(prog_.Read<size_t>(pc_));
         continue;

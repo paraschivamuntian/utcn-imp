@@ -17,6 +17,11 @@ Token::Token(const Token &that)
       value_.StringValue = new std::string(*that.value_.StringValue);
       break;
     }
+    case Kind::INT: {
+      //value_.IntValue = that.value_.IntValue;
+      value_.IntValue = new std::uint64_t(*that.value_.IntValue);
+      break;
+    }
     default: {
       break;
     }
@@ -32,6 +37,10 @@ Token &Token::operator=(const Token &that)
       delete value_.StringValue;
       break;
     }
+    case Kind::INT: {
+      delete value_.IntValue;
+      break;
+    }
     default: {
       break;
     }
@@ -42,6 +51,10 @@ Token &Token::operator=(const Token &that)
     case Kind::STRING:
     case Kind::IDENT: {
       value_.StringValue = new std::string(*that.value_.StringValue);
+      break;
+    }
+    case Kind::INT: {
+      value_.IntValue = that.value_.IntValue;
       break;
     }
     default: {
@@ -81,7 +94,12 @@ Token Token::String(const Location &l, const std::string &str)
   tk.value_.StringValue = new std::string(str);
   return tk;
 }
-
+Token Token::Int(const Location &l, const std::uint64_t &nr)
+{
+  Token tk(l, Kind::INT);
+  tk.value_.IntValue = new std::uint64_t(nr);
+  return tk;
+}
 // -----------------------------------------------------------------------------
 void Token::Print(std::ostream &os) const
 {
@@ -125,6 +143,12 @@ std::ostream &operator<<(std::ostream &os, const Token::Kind kind)
     case Token::Kind::INT: return os << "INT";
     case Token::Kind::STRING: return os << "STRING";
     case Token::Kind::IDENT: return os << "IDENT";
+    case Token::Kind::MINUS: return os << "-";
+    case Token::Kind::MUL: return os << "*";
+    case Token::Kind::MOD: return os << "%";
+    case Token::Kind::DIV: return os << "/";
+    case Token::Kind::EQ: return os << "==";
+    case Token::Kind::NEQ: return os << "!=";
   }
   return os;
 }
@@ -180,9 +204,13 @@ const Token &Lexer::Next()
     case '}': return NextChar(), tk_ = Token::RBrace(loc);
     case ':': return NextChar(), tk_ = Token::Colon(loc);
     case ';': return NextChar(), tk_ = Token::Semi(loc);
-    case '=': return NextChar(), tk_ = Token::Equal(loc);
+    //case '=': return NextChar(), tk_ = Token::Equal(loc);
     case '+': return NextChar(), tk_ = Token::Plus(loc);
     case ',': return NextChar(), tk_ = Token::Comma(loc);
+    case '-': return NextChar(), tk_ = Token::Minus(loc);
+    case '*': return NextChar(), tk_ = Token::Mul(loc);
+    case '/': return NextChar(), tk_ = Token::Div(loc);
+    case '%': return NextChar(), tk_ = Token::Mod(loc);
     case '"': {
       std::string word;
       NextChar();
@@ -196,6 +224,22 @@ const Token &Lexer::Next()
       NextChar();
       return tk_ = Token::String(loc, word);
     }
+    case '=': {
+      NextChar();
+      if(chr_ == '='){
+        return NextChar(), tk_ = Token::Eq(loc);
+      } else {
+        return tk_ = Token::Equal(loc);
+      }
+    }
+    case '!': {
+      NextChar();
+      if(chr_ == '='){
+        return NextChar(), tk_ = Token::Neq(loc);
+      } else {
+        Error("unknown expression: ! ");
+      }
+    }
     default: {
       if (IsIdentStart(chr_)) {
         std::string word;
@@ -206,7 +250,20 @@ const Token &Lexer::Next()
         if (word == "func") return tk_ = Token::Func(loc);
         if (word == "return") return tk_ = Token::Return(loc);
         if (word == "while") return tk_ = Token::While(loc);
+        if (word == "if") return tk_ = Token::If(loc);
+        if (word == "else") return tk_ = Token::Else(loc);
         return tk_ = Token::Ident(loc, word);
+      }
+      else
+      if(isdigit(chr_)){
+       uint64_t aux = 0;
+        do {
+          aux = aux * 10  + (chr_ - '0');
+          NextChar();
+        } while (isdigit(chr_));
+
+
+        return tk_ = Token::Int(loc, aux);
       }
       Error("unknown character '" + std::string(1, chr_) + "'");
     }
